@@ -60,8 +60,8 @@ __styles : {position : null},
 		if(dat.iHeader) this.view.iHeader = this.view.el.addChild(dat.iHeader).position({ bottom : 'auto'});
 		this.view.iMain = this.view.el.addChild(dat.iMain);
 		this.view.MainCanvas = this.view.iMain.addChild({className : 'MainCanvas'});
-		if(this.id)this.view.MainCanvas.id =this.id+ 'MainCanvas';
-		$_SYS.fn.on(this.view.MainCanvas,'_MOUSE*', function(e,type){//console.log(arguments, e.type); //touchstart 
+		if(this.id)this.view.MainCanvas.id =this.id+ 'MainCanvas';//this.view.MainCanvas
+		$_SYS.fn.on(this.view.iMain,'_MOUSE*', function(e,type){//console.log(arguments, e.type); //touchstart 
 		//if(e.target.getParents('hasClass','iMain')[0] ) 
 		Editor.mouseTab.call( ( Editor.mouseTab._this || e), e, type ); 
 			//console.log(e, e.target.getParents('hasClass','iMain')); 
