@@ -1,0 +1,5 @@
+classes.Items = {
+	objectType : 'class',
+	
+}
+
