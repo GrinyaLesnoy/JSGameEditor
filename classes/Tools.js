@@ -123,8 +123,8 @@ classes.Tools = {
 	fn : function(e, act){
 		switch (act){
 			case 'down':	
-			var canvas = this.Tools.MainCanvas;
-			if(canvas[0]){this.canvas = canvas[0]; }else{return;} 
+			var canvas = this.Tools.MainCanvas;console.log(this.Tools);
+			if(this.Tools.view.MainCanvas){this.canvas = this.Tools.view.MainCanvas; }else{return;} 
 				 this.delta = {x : this.canvas._X()-$_SYS.Mouse._x, y : this.canvas._Y()-$_SYS.Mouse._y};
 			break;
 			case 'move':
