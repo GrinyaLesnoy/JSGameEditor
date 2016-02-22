@@ -301,7 +301,7 @@ classes.Editor.Tab.MapsEditor = {
 		},
 		$ClassStyle : {
 			'#iHeaderMapsEditor' : {'font-size' : '0.9em','line-height':'25px'},
-			'#iHeaderMapsEditor a, #iHeaderMapsEditor #getFM' : {height:25, 'padding-left':30,  display : 'inline-block', 'vertical-align' : 'middle', margin: '0 10px', background:' url("<%path:data%>/interface/sysTools.png") no-repeat 0 0', cursor : 'pointer', border:'none'},
+			'#iHeaderMapsEditor a, #iHeaderMapsEditor #getFM' : {height:25, 'padding-left':30,  display : 'inline-block', 'vertical-align' : 'middle', margin: '0 10px', background:' url("<%path:data%>/interface/SysTools.png") no-repeat 0 0', cursor : 'pointer', border:'none'},
 			'#iHeaderMapsEditor input[type="file"]' : {display: 'none'},
 			'#iHeaderMapsEditor #getFM' : {'background-position': '0 -25px'},
 			'#iHeaderMapsEditor a#returnFM' : {'background-position': '0 -50px'},
