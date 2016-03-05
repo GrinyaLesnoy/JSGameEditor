@@ -4,7 +4,7 @@ classes.Editor.Characters = {
 	 
 	 $_import : ['Texture'],
 	 
-	__construct : function(_this){
+	__construct : function(_this_){
 		this.addTabBox(); 
 		this.charactersTextureTab = $_SYS._New(classes.Editor.Tab,{id: 'charactersTextureTab', parent : this.id,  title : 'Текстура', modelClass : 'classes.Editor.Characters.Texture', parentNode : this.view.tabBox });
 		var act = 'charactersTextureTab';console.log(this.charactersTextureTab);

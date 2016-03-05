@@ -21,25 +21,64 @@ classes.Controllers.Levels = {
 			}
 		},
 		__update : function(o){},
-		__construct : function(_this){this.view.select = this.view.el.addChild({tagName : 'select'}); 
+		__construct : function(_this_){this.view.select = this.view.el.addChild({tagName : 'select'}); 
 				this.view.select.addEventListener('change', function(s){  
 					console.log(s.explicitOriginalTarget.value);
-					_this.setCurrentLevel.call(_this,s.explicitOriginalTarget.value); 
+					_this_.setCurrentLevel.call(_this_,s.explicitOriginalTarget.value); 
 				} ,false);
 				this.view.controll = this.view.el.addChild({className:'controll' });
-				this.view.controll.innerHTML = '<span class="add">add</span><span class="copy">copy</span><span class="remove">remove</span>'
+				this.view.controll.innerHTML = '<button class="add">add</button><button class="copy">copy</button><button class="remove">remove</button>'
 				$_SYS.fn.on(this.view.controll,'_DOWN',this.controller,false,this);},
 		getLevelName : function(){//Ищит первое свободное id для слоя
 			var name=''; for(var i=0; ;i++){ name='Level_'+i; if(!this.MainEditor.Maps[name])break; }
 			return name;
 		},
-		_controllers_ : {
-			add : function(){ 
+		add : function(Level_id){
+				var Level_id = Level_id || this.getLevelName();
+				this.MainEditor.Maps[Level_id]=$_SYS._New( this.level_templates.default); 
+						this.view.addPoint(Level_id);
+						this.setCurrentLevel(Level_id,true); 
+		},
+		_controllers_ : { 
+			add : function(){
+				
+			/*if(!this.add_Dialog){
+				this.add_Dialog = {
+				
+				},
+				this.add_Dialog.Body = document.createElement('div');
+				this.add_Dialog.Level_id = this.add_Dialog.Body.addChild( 
+					{ TagName : 'input', name : 'Level_id', value : ''}
+				 );
+			}	*/
+			
 			var Level_id = this.getLevelName();//'Level_'+(++this.Level_num);
-				this.MainEditor.Maps[Level_id]=$_SYS._New( this.level_templates.default);
-				console.log(this.MainEditor.Maps);
-				this.view.addPoint(Level_id);
-				this.setCurrentLevel(Level_id,true);
+			//this.add_Dialog.Level_id.value = Level_id;
+			Editor.ModalWindow._show_(
+				{	
+					title : 'Создать уровень',
+					Listener : this, 
+					Data : {Level_id : { TagName : 'input', name : 'Level_id', value : Level_id, title : 'Level ID'} },
+					//autoUpdate : boolean  
+					Init : function (){
+						// this.data.ContentData.Level_id.value = ;
+					}, 
+				//	onClose : function (){}, 
+					callback  : function (Data){  this.add(Data.Level_id.value);  }, 
+					//content :	this.add_Dialog.Body,
+					//ContentData : this.add_Dialog 
+					validator : function(name,value){
+						var result;
+						switch(name){
+							case 'Level_id': 
+							 result = !(this.MainEditor.Maps[value]);
+							break
+						}
+						return result;
+					},
+				}
+			);
+				
 			},
 			copy : function(){
 				var Level_id = this.getLevelName();//'Level_'+(++this.Level_num);
@@ -212,11 +251,19 @@ classes.Controllers.Items = {
 			'GateID' : {e:{TagName : 'select', title:'GateID назначения', TagName : 'select',},data:{
 				get:function(item){return item.info.Maps[item.data.LevelID ? item.data.LevelID : item.info.Level].Gate;},
 				onChange:function(){ 
+				/*var G = this.Item.info.Maps[this.Item.data.LevelID].Gate[this.Item.data.GateID]; 
+				G.LevelID = this.Item.info.Level; G.GateID = this.Item.info.index; 
+				console.log(this.Item.data, G);*/
+				},
+			}},
+			'linkGate' : {e:{TagName :  'button', content: 'сюда', title:'Направить врата назначения' },data:{
+				get:function(item){return item.info.Maps[item.data.LevelID ? item.data.LevelID : item.info.Level].Gate;},
+				onChange:function(){ 
 				var G = this.Item.info.Maps[this.Item.data.LevelID].Gate[this.Item.data.GateID]; 
 				G.LevelID = this.Item.info.Level; G.GateID = this.Item.info.index; 
 				console.log(this.Item.data, G);
 				},
-			}},
+			}}
 			},
 		__construct : function(){ console.log(this);
 			var d = this.view.el.addChild({TagName:'p',content: (this.itemClass+': ')});
@@ -232,6 +279,7 @@ classes.Controllers.Items = {
 			  d = this.view.el.addChild({TagName:'p',content: (this.itemClass+': ')});
 				 
 				this.view.del=d.addChild(this.inputOptions.del.e); 
+				$_SYS.CSS.update(); 
 		},
 		item_fn : {
 				_x : '_X',
@@ -287,7 +335,9 @@ classes.Controllers.Items = {
 	},
 	view : {
 		$ClassStyle : {
-			 '.rightBarBlock .$ p' : {'padding-bottom':10}
+			 '.rightBarBlock .$ p' : {'padding-bottom':10},
+			 'input[readonly]' : {background: 'transparent', color: 'inherit',border: 'none'},
+			 '.rightBarBlock .$ input[name="ID"]' : { color: '#f70', 'font-size': '1.02em', 'font-weight': 700 }
 		}
 	}
 }
@@ -303,7 +353,7 @@ classes.Controllers.Items = {
 	objectType : 'classExtend',
 	itemClass : 'Gate',
 	extendOf : 'classes.Controllers.Items',
-	options : ['xC','yC','LevelID','GateID'] 
+	options : ['xC','yC','LevelID','GateID','linkGate'] 
 	}
 	
 	classes.Controllers.Items.____ = {
@@ -320,3 +370,140 @@ classes.Controllers.Items = {
 	options : ['_x','_y','w','h' ]  
 	}*/
 	
+	//Модальное окно. 
+	/*
+		содержимое data
+		data : {
+			title : 'Заголовок окна',
+			Listener : Obj, - объект-приемник
+			Data : obj, - параметры в виде объектов для addChild (для автомат. генерации полей)
+			autoUpdate : boolean - автоматически пихать новые значения в приемник
+			Init : function (){}, - инициализация. Например, function (){this.view.content.innerHTML = 'Окно';}
+			onClose : function (){}, - для корректного удаления всего, что добавленно через Init
+			callback : function (Data){}, - //call(Listener)
+			content : Node || string - можно создать элемент и повесить на него все события прямо в приемнике и отправить его сюда для постановки в body
+			validator : function(name,value,Data, mWindow){Ф-ция валидации},//call(Listener) return boolean || undefined
+			onChange :	function(name,value,Data, mWindow){Ф-ция валидации},//call(Listener)
+			controllers : {}//можно задать кнопки и их названия отличные от ok и cansel ( { ok :'Применить'}  )
+		}
+	*/
+	classes.Controllers.ModalWindow = {
+	objectType : 'classExtend',
+	extendOf : 'classes.Controllers',
+	className : 'modalWindow', 
+	controller : function(e,act){  
+		if(e.target.value){
+			e.target.focus();//document.activeElement.tagName
+			if(e.target.value = 'ok' && this.data ){
+				if(this.data.validat) for(var i in this.data.validat){
+						if(this.data.validat[i]===false){alert('Проверьте значения полей!'); return;}
+					} 
+				if(this.data.autoUpdate)for(var i in this.data.Data){this.data.Listener[i] = this.data.Data[i];} 
+				if(this.data.callback) this.data.callback.call(this.data.Listener, this.data.Data);
+			}
+			if(this.data.onClose)this.data.onClose.call(this,this);
+			if(this.data)delete this.data; 
+			this.view.title.innerTEXT = '';
+			this.view.content.innerHTML = '';
+			this.view.el.hidde();
+		}
+	},
+	dataController : function(e,act){ 
+		var name = e.target.name, value = e.target.value;
+		if(this.data.onChange){
+			 this.data.onChange.call(this.data.Listener ,name,value,this.data.Data, this);
+		}else if(this.data.validator){
+			var validation = this.data.validator.call(this.data.Listener ,name,value,this.data.Data,this);
+			 if(!this.data.validat ){this.data.validat={}}
+			 this.data.validat[name] = validation;
+			 if(typeof validation =='boolean')e.target.className=validation ? 'true' : 'err'; 
+			if(validation!==false)this.data.Data[name].value=value; 
+		}else{
+			this.data.Data[name].value=value;
+		}
+		console.log(this.data.Data[name]);
+	},
+	default_data : {
+		
+	}, 
+	_show_ : function(data){
+		if(data )this.data = data;else if(!this.data)this.data = this.default_data;
+		if(this.data){   
+			this.view.title.innerHTML = this.data.title || this.data.Listener.title || this.data.Listener.className || this.data.Listener.id || '';
+			if(this.data.content){
+				if($_SYS.fn.isNode(this.data.content))this.view.content.appendChild(this.data.content);
+				else if(typeof this.data.content == 'string') this.view.content.innerHTML = this.data.content;  
+			} 
+			if(this.data.Data)for(var i in this.data.Data){//Пытается подставить значения по умолчанию   
+					if(!this.data.content){
+						var lebel = this.view.content.addChild({TagName : 'labe'});
+						if(this.data.Data[i].title)lebel.innerHTML = this.data.Data[i].title+': ';
+						lebel.addChild(this.data.Data[i]);
+					}else{
+						 var input = this.view.content.getElementBy('name',i);
+						 if(input[0]){ input[0].value = this.data.Data[i]}
+					}
+				}
+				
+			this.data.Width = this.data.Width || Math.round($_SYS.info.screen.Width/4);
+			//this.data.height = this.data.Height || Math.round($_SYS.info.screen.Height/4);
+			this.view.winsow.Width(this.data.Width)._X(($_SYS.info.screen.Width - this.data.Width)/2)._Y(20).Height(this.data.Height || $_SYS.info.screen.Height-40); 
+			if(this.data.Init)this.data.Init.call(this,this);
+			this.view.el.show();
+			if(!this.data.Height){ 
+					//Расчет исходя из размеров контента
+					var bodyH = this.view.body.outerHeight(); 
+					this.data.Height = (this.view.content.outerHeight() < bodyH) ? 
+					this.view.content.outerHeight()+this.view.HeaderH+this.view.FooterH + (bodyH-this.view.body.Height()): 
+					Math.round($_SYS.info.screen.Height/2); 
+			}
+			if(this.data.Height>$_SYS.info.screen.Height){this.data.Height=$_SYS.info.screen.Height}
+			this.view.winsow.Height(this.data.Height)._Y(Math.round(($_SYS.info.screen.Height - this.data.Height)/2));
+			if(this.data.controllers){
+				this.view.footer.innerHTML=''; 
+				var   b_title; 
+				for(var v in this.data.controllers){
+					b_title = this.data.controllers[v];
+					b_title = (typeof b_title == 'object') ? b_title.title : b_title;
+					this.view.footer.addChild( {TagName:'button',  value: v, content:b_title})
+				}
+			}
+		} 
+	},
+	__construct : function(_this_){
+		//$_SYS.CSS.update(); 
+		this.default_data.Listener = this;
+		this.view.el.hidde();
+		this.view.el.topBlock();
+		this.view.winsow = this.view.el.addChild({className : this.className +'_Window'}); 
+		this.view.header = this.view.winsow.addChild({className : this.className +'_Header'}); 
+		this.view.header.position({bottom: 'auto' }).height(this.view.HeaderH);
+		this.view.title = this.view.header.addChild({TagName : 'h1'}); 
+		this.view.body = this.view.winsow.addChild({className : this.className +'_Body'});
+		this.view.body.position({  top : this.view.HeaderH, bottom : this.view.FooterH, overflow : 'hidden'});
+		this.view.content = this.view.body.addChild({className : this.className +'_Content'}); 
+		$_SYS.fn.on(this.view.content,'change blur',this.dataController,false,_this_);
+		
+		this.view.footer = this.view.winsow.addChild({className : this.className +'_Footer'});
+		this.view.footer.position({top: 'auto'}).height(this.view.FooterH);
+		this.view.footer.addChild([{TagName:'button',  value: 'ok', content:'Ok'},{TagName:'button', value: 'cansel', content:'Cansel'}])
+		//$_SYS.fn.on(,'_MOUSE')
+		$_SYS.fn.on(this.view.footer,'_DOWN',this.controller,false,_this_);
+		if(this.data!==false)this._show_();
+	},
+	view : {
+		HeaderH : 30,
+		FooterH : 30,
+		$ClassStyle : {
+			'.$' : {background: 'rgba(0,0,0, 0.5)'},
+			'.$_Window' : {background: '#444'},
+			'.$_Body' : {padding: 5},
+			'.$_Body *' : {position: 'relative'},
+			'.$_Header' : {background: '#222','line-height':20+'px', 'text-align':'center'},  
+			'.$_Footer' : {'text-align': 'center'},
+			'.$ input.err' : {'box-shadow' : '0px 0px 1px 1px rgba(255, 0, 0, 80)'},
+			'.$ input.true' : {'box-shadow' : '0px 0px 1px 1px rgba(0, 255, 0, 80)'}
+			
+		}
+	}
+}

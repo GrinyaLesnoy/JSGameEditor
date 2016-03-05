@@ -285,7 +285,7 @@ classes.Tools = {
 			this[tool].optionsBar.view.el.hidde();
 			if(this[tool].init)this[tool].init();
 		}
-		//this.tabs[a.id].view.el.addEventListener('click', function(c){  _this.activate($_SYS.$Get(c.target.id).tid)} ,false);
+		//this.tabs[a.id].view.el.addEventListener('click', function(c){  _this_.activate($_SYS.$Get(c.target.id).tid)} ,false);
 		
 	},
 	//Тип палитры инструментов. Доступные значения 'icon', 'list'
@@ -300,7 +300,7 @@ classes.Tools = {
 		$MC.screenDX = ( this.view.MainCanvas.getBoundingClientRect().x)/$MC.scale; 
 		$MC.screenDY = ( this.view.MainCanvas.getBoundingClientRect().y)/$MC.scale;
 			},
-	__construct : function(_this){
+	__construct : function(_this_){
 		this.view.el.addClass(this.type+'-'+this.className);
 		this.view.parentTab = this.view.el.getParents('hasClass', 'Tab')[0];
 		this.parent = $_SYS.$Get(this.view.parentTab.id);  
@@ -347,7 +347,7 @@ classes.Tools = {
 		} console.log(this.tools,this.actTool,i)
 			this.getTool();
 		}
-		$_SYS.fn.on(this.view.el, '_DOWN', function(e){ if(e.target.hasClass('tool')){_this.getTool(e.target.id.split('_tool')[0]);} } ,false);
+		$_SYS.fn.on(this.view.el, '_DOWN', function(e){ if(e.target.hasClass('tool')){_this_.getTool(e.target.id.split('_tool')[0]);} } ,false);
 		
 					
 	},

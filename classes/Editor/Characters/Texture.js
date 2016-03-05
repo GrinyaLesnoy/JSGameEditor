@@ -2,7 +2,7 @@ classes.Editor.Characters.Texture = {
 	objectType : 'classExtend',
 	extendOf : 'classes.Editor.Characters', 
 	 
-	__construct : function(_this){
+	__construct : function(_this_){
 		 this.canvas = this.view.el.addChild({TagName:'canvas', id:'textureMap'});
 		
 	},

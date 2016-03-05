@@ -3,10 +3,15 @@ classes.Editor.Tab.MapsEditor = {
 	extendOf : 'classes.Editor.Tab', 
 	 
 	// $_import : ['Texture'],
+		onGetDATA : function(){
+			if(Editor.$Files.files.Data['Maps.js']){ 
+				this.loadMap(false,Editor.$Files.files.Data['Maps.js'].content); 
+			}
+		},
 	  loadMap : function(f,data){ 
 		if(data.indexOf('Data.Maps') ==-1 || data.indexOf('Data.Maps')>=data.indexOf('{')){alert('ну удалось получить карту'); return;}
 		eval(data.replace(/Data./,'this.'));
-		console.log(this.Maps);
+		console.log( this.Maps.Level_0.Gate[0],this.Maps);
 		//this.Options.Levels
 		this.Options.Levels.view.select.innerHTML='';
 		for(var i in this.Maps){  
@@ -32,42 +37,51 @@ classes.Editor.Tab.MapsEditor = {
 		//);;
 		return false;
 	 },
-	 options : {
+	 options : {// ** Значения по умолчанию ** */
 		newLayer : {},
 		actLevel : 'Level_0',
 		actLayer : 'l0',
-		actItemLayer : 'Ground'
+		actItemLayer : 'Ground',
+		ItemLayers : ['Ground', 'Gate'];
 	 },
 	 
-	 itemsData : {
+	 itemsData : {// ** Параметры объектов, подлежащие обновлению в this.Maps при их изменении ** */
 		Ground : ['_x','_y','w','h','lc','rc'],
 		Gate : ['xC','yC','LevelID','GateID']
 	 },
+	 updateTab : function(){ // ** Описывает обновление вида вкладки после изменения ее размеров или перехода на нее ** */
+		if(this.Maps)this.updateMap();
+	 },
 	 cuurrentLayer : 'Layer_0',
+	 // ** Обновление отображенной в редакторе карты при загрузки новой или переходе к редактированию другого уровня ** */
 	 updateMap : function(){ 
-		this.Tools.Select.deSelect('all');
+		this.Tools.Select.deSelect('all'); // ** Снимаем все выделения ** */
+		// ** Если чего-то нет, то создаем ** */
 		if(!this.view.Layers)this.view.Layers = {};
 		if(!this.view.Level)this.view.Level = this.view.MainCanvas.addChild({id : 'Level'});
-		this.view.Level.innerHTML='';
-		this.view.Layers['l0']={el: this.view.Level.addChild({id : this.cuurrentLayer})}
-		var Level = this.options.actLevel; //console.log(Level);
-		if(!this.Maps[Level]){this.Options.Levels._controllers_.add.call(this.Options.Levels);}//this.Maps[Level]={}Пусть по умолчанию всегда загоняет 0 слой
+		this.view.Level.innerHTML='';// ** Очищаем ** */
+		
+		this.view.Layers['l0']={el: this.view.Level.addChild({id : this.cuurrentLayer})}// ** l0 - базовый слой в игре (остальные - l1, l2, 'l-1'... - отвечают за декорации) - слои "Земля","Врата" и т.д. - на самом деле, это - подслои l0 (Можно сказать, l0 - это слой-папка, как в фотошопе) ** */
+		var Level = this.options.actLevel; // ** Значение по умолчанию (см. выше) ** */
+		if(!this.Maps[Level]){this.Options.Levels.add.call(this.Options.Levels);}//this.Maps[Level]={}Пусть по умолчанию всегда загоняет 0 слой
+		// ** Холст - по сути, пока он оказался почти не нужен ** */
 		if(!this.Maps[Level].canvas){this.Maps[Level].canvas = this.Options.Levels.level_templates.default.canvas;} 
 		this.view.MainCanvas.width(this.Maps[Level].canvas[0]).height(this.Maps[Level].canvas[1]);
 		//Выравниваем холст по центру экрана
 		this.view.MainCanvas.XC(this.view.iMain.XC()).YC(this.view.iMain.YC());
 		//Сообщаем в инструменты параметры холста
 		this.Tools.onResize();
-		var _layers_ =  ['Ground', 'Gate'];//Object.keys(this.itemsData);
-		for(var l in _layers_){
-			var Layer = _layers_[l];
+		var ItemLayers =  this.options.ItemLayers;//Слои l0 с которыми работает редактор
+		for(var l in ItemLayers){
+			var Layer = ItemLayers[l];
 			this.view.Layers['l0'][Layer] =  this.view.Layers['l0'].el.addChild({id : Layer});
 			var iMap = this.Maps[Level][Layer]; 
 			
 			for(var g in iMap){
 				var item =  this.view.Layers['l0'][Layer].addChild({ id : Layer+'-item-'+g, className : Layer+' item', 'data-class' : Layer}); 
-				if(typeof iMap[g].xC == 'number')item.XC(iMap[g].xC).YC(iMap[g].yC);
-				if(typeof iMap[g]._x == 'number')item._X(iMap[g]._x)._Y(iMap[g]._y).width(iMap[g].w).height(iMap[g].h);
+				if(typeof iMap[g].xC == 'number')item.XC(iMap[g].xC).YC(iMap[g].yC)
+				else if(typeof iMap[g]._x == 'number')item._X(iMap[g]._x)._Y(iMap[g]._y).width(iMap[g].w).height(iMap[g].h);
+				 
 				item.data = iMap[g]; 
 				item.info = {Maps : this.Maps, Level : Level, Layer : Layer, GLayer : 'l0', index : g};
 							
@@ -75,7 +89,7 @@ classes.Editor.Tab.MapsEditor = {
 			}
 		 }
 		 
-		 this.Options.Layers.__update({LayersList : _layers_,Layers : {}, act:'Ground'})
+		 this.Options.Layers.__update({LayersList : ItemLayers,Layers : {}, act:'Ground'})
 	 },
 	 _tools : {
 		left : {
@@ -152,6 +166,7 @@ classes.Editor.Tab.MapsEditor = {
 					 
 					//this.selected
 					var Item = this.selected[this.selectedId], data = Item.data;  
+					console.log(key);
 					if(key == 'delete'){ 
 						var iMap = this.Tools.MapEditor;
 					//console.log(this.selectedId.substr(-1),iMap.Maps['Level_0'][iMap.Options.Layers.act][this.selectedId.substr(-1)]); 
@@ -235,26 +250,30 @@ classes.Editor.Tab.MapsEditor = {
 				this.Tools.MapEditor = this;
 			},
 			'header' : function(e){ 
-				var _this = this;
+				var _this_ = this;
 				this.view.createFM = e.addChild({TagName : 'a', type:'button', content: 'New', id : 'createFM'});
 				$_SYS.fn.on(this.view.createFM,'_DOWN', this.newMaps, false,this);
 				this.view.getFM_l = e.addChild({TagName : 'label', content: 'open Maps.js', id:'getFM' });
 				this.view.getFM = this.view.getFM_l.addChild({TagName : 'input', type:'file', accept:".js", name:'getFM' });
-				this.view.getFM.addEventListener('change', function(c){ $_SYS.LocalFile.read(this.files,_this.loadMap,_this);} ,false);
+				this.view.getFM.addEventListener('change', function(c){ $_SYS.LocalFile.read(this.files,_this_.loadMap,_this_);} ,false);
+				
+				//onGetDATA
+				// Добавить: диалог сохранения (в файл или в Data) и диалог открытия
 				this.view.returnFM = e.addChild({TagName : 'a', type:'button', content: 'Save', download:'Maps.js', id : 'returnFM'});
 				$_SYS.fn.on(this.view.returnFM,'_DOWN', this.saveMap ,false,this);
 				var lebel = e.addChild({TagName : 'label', content:' compact '}); 
 				this.view.compactSave = e.addChild({TagName : 'input', type:'checkbox', value: '1', checked : 'checked'});
-				this.view.compactSave.addEventListener('change', function(c){console.log(c.target.checked); _this.compactSave = c.target.checked } ,false);
+				this.view.compactSave.addEventListener('change', function(c){console.log(c.target.checked); _this_.compactSave = c.target.checked } ,false);
 			}
 		 },
 	 mouseTab : function(e, act){ 
 		if(this.Tools)this.Tools.appyTool(e, act);
 	},
-	 Init : function(_this){
-		var _this = this;
+	 Init : function(_this_){
+		var _this_ = this;
 		
 		 this.setInterface();
+		 $_SYS.LocalFile.setListener(this.view.iMain,_this_.loadMap,_this_ );
 		//this.GetMapFile = $SYS._New({id : 'GetMapFile'})  
 		
 		//this.addTabBox();
@@ -282,7 +301,8 @@ classes.Editor.Tab.MapsEditor = {
 			rc : {title:'Правый зацеп', value : 1, type : 'checkbox'},
 			'delete' : {type:'button',value : 'delete'},
 			'LevelID' : {title:'LevelID назначения', TagName : 'select', get:'this.Maps'},
-			'GateID' : {title:'GateID назначения', TagName : 'select', get:'this.Maps[]'}
+			'GateID' : {title:'GateID назначения', TagName : 'select', get:'this.Maps[]'}, 
+			'linkGate' : {title:'Привязать врата назначения', type:'button',value : 'linkGate'},
 		},
 		inputTemplate: function(key, val,box){//Генерирует input на основе параметров
 			if(typeof val == 'object')val=val[key]; 

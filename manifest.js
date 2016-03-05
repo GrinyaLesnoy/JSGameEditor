@@ -22,6 +22,13 @@ manifest = {
 }
 
 manifest.library = {
+	scripts : {
+		'Data/lib' : [
+		//'zip.js'
+		'jszip.js',
+		'jszip-utils.js'
+		]
+	},
 	//Может содержать как объекты вида {Data : {sprites : ['s1.png','s2.png']}} так и строки ['Data/sprites/s1.png','Data/sprites/s2.png'], так и комбинированную (корневой массив соответств корневому каталогу)
 	/*images : {
 		Data : {

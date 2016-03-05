@@ -15,13 +15,14 @@ classes.Editor.TabController = {
 		$_SYS.$Get(id+'_btn').view.el.addClass('act');//Добавляем класс новому 
 		var tab =  $_SYS.$Get(id);
 		$_SYS.GetEl(tab).addClass('act'); 
-			if(tab.mouseTab){tab.mouseTab._this = tab;Editor.mouseTab = tab.mouseTab;}
+			if(tab.mouseTab){tab.mouseTab._this_ = tab;Editor.mouseTab = tab.mouseTab;}
+			Editor.Tabs[id].onResize();
 		},
 	addController :  function(a){ 
 		this.tabs[a.id]=$_SYS._New({id : a.id+'_btn', tid : a.id, parentNode : this.view.el, view : true});
 		this.tabs[a.id].view.el.textContent = a.title;
-		var _this = this;
-		$_SYS.fn.on(this.tabs[a.id].view.el, '_DOWN', function(c){  _this.activate($_SYS.$Get(c.target.id).tid)} ,false);
+		var _this_ = this;
+		$_SYS.fn.on(this.tabs[a.id].view.el, '_DOWN', function(c){  _this_.activate($_SYS.$Get(c.target.id).tid)} ,false);
 		// window.addEventListener('touchstart',$_SYS.Mouse.Controls.down,false);
 		 //  window.addEventListener('touchend', $_SYS.Mouse.Controls.up,false);
 		  // window.addEventListener('touchmove', $_SYS.Mouse.Controls.move,false); 
@@ -38,7 +39,7 @@ classes.Editor.TabController = {
 }
 
 classes.Editor.Tab = {
-$_import : ['MapsEditor' ], 
+$_import : ['MapsEditor', 'DataUploader' ], 
 __styles : {position : null},
 	objectType : 'classExtend',
 	extendOf : 'classes.Editor',
@@ -63,7 +64,7 @@ __styles : {position : null},
 		if(this.id)this.view.MainCanvas.id =this.id+ 'MainCanvas';//this.view.MainCanvas
 		$_SYS.fn.on(this.view.iMain,'_MOUSE*', function(e,type){//console.log(arguments, e.type); //touchstart 
 		//if(e.target.getParents('hasClass','iMain')[0] ) 
-		Editor.mouseTab.call( ( Editor.mouseTab._this || e), e, type ); 
+		Editor.mouseTab.call( ( Editor.mouseTab._this_ || e), e, type ); 
 			//console.log(e, e.target.getParents('hasClass','iMain')); 
 		} ,false);
 		if(dat.iRightBar) this.view.iRightBar = this.view.el.addChild(dat.iRightBar).position({ left: 'auto'}); 
@@ -71,8 +72,8 @@ __styles : {position : null},
 		if(dat.iLeftBar)this.view.iLeftBar = this.view.el.addChild(dat.iLeftBar).position({ right: 'auto'});
 		//Выполнение функций для блоков
 		for(i=0; i< d.length; i++){ if(options[d[i]])options[d[i]].call(this,this.view['i'+$_SYS.fn.toTitleCase(d[i])]);  } 
-		var _this = this;
-		setTimeout(function(){_this.onResize();},100);
+		var _this_ = this;
+		setTimeout(function(){_this_.onResize();},100);
 	},
 	onResize : function(){
 		var top = 0, right = 0, left=0;
@@ -80,11 +81,13 @@ __styles : {position : null},
 		if(this.view.iRightBar){this.view.iRightBar.position({top : top, left : 'auto'}); right = this.view.iRightBar.FullWidth();}
 		if(this.view.iLeftBar){this.view.iLeftBar.position({top : top, right : 'auto'}); left = this.view.iLeftBar.FullWidth(); a = this.view.iLeftBar; }  
 		if(this.view.iMain)this.view.iMain.position({top : top, right : right, left : left});
+		if(this.view.MainCanvas)this.view.MainCanvas.XC(this.view.iMain.XC()).YC(this.view.iMain.YC());
+		if(this.updateTab)this.updateTab();/** updateTab задается из класса вкладки : функция для индивидуального обновления**/
 		},
 	__construct : function(){  
 		 $_SYS.$Get(this.parent).TabController.addController(this); 
 		
-		 this.Init();
+		 if(this.Init)this.Init(this);
 		
 		this.onResize();
 	},
